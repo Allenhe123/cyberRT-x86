@@ -1,0 +1,91 @@
+cmake version >= 3.12
+
+sudo apt install libasio-dev libtinyxml2-dev
+apt-get install libncurses5-dev
+
+安装automake 工具,      (ubuntu 8.04)用下面的命令安装好就可以了。
+sudo apt-get install autoconf automake libtool
+
+安装protobuffer: 
+https://github.com/protocolbuffers/protobuf/releases
+下载 3.6.1版本
+解压
+./configure
+make
+make check
+sudo make install
+
+安装python2.7-dev:
+sudo apt-get install python2.7-dev
+export Python2_LIBRARY=/usr/lib/python2.7
+export Python2_INCLUDE_DIR=/usr/include/python2.7
+
+下载安装gflags：
+git clone https://github.com/gflags/gflags.git
+cd gflags && mkdir build && cd build
+cmake .. && make -j16 && sudo make install
+
+
+下载glog源码，编译安装：
+git clone https://github.com/google/glog.git
+cd glog
+mkdir build && cd build
+cmake .. && make -j16 && sudo make install
+或者
+./autogen.sh && ./configure && make && sudo make install
+
+
+下载poco源码，编译安装：
+git clone https://github.com/pocoproject/poco.git
+cd poco
+mkdir build && cd build
+cmake .. && sudo make install
+
+下载Foonathan memory源码，编译安装：
+$ git clone https://github.com/eProsima/foonathan_memory_vendor.git
+$ cd foonathan_memory_vendor
+$ mkdir build && cd build
+$ cmake ..
+$ cmake --build . --target install
+
+下载Fast-CDR源码，编译安装：
+https://github.com/eProsima/Fast-CDR/releases
+下载 1.0.7版本
+$ mkdir Fast-CDR/build && cd Fast-CDR/build
+$ cmake ..
+$ cmake --build . --target install
+
+
+下载Fast-RTPS源码，编译安装：
+https://github.com/eProsima/Fast-RTPS/releases
+下载1.5.0版本
+$ mkdir Fast-RTPS/build && cd Fast-RTPS/build
+$ cmake ..
+$ cmake --build . --target install
+
+编译可能遇到fastRTPS报错，std::function相关。。。打开对应文件#include <functional>
+
+FastCDR与fastRTPS需要打patch才可以。patch文件:
+https://github.com/ApolloAuto/apollo/issues/7240
+
+也可以直接用该仓库中cyberRT-dependency目录中的三方库，其中fast-CDR和fast-RTPS已经打过补丁。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

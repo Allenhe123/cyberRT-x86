@@ -1,0 +1,111 @@
+diff -ru eProsima_FastCDR-1.0.7-Linux-org/include/fastcdr/Cdr.h eProsima_FastCDR-1.0.7-Linux/include/fastcdr/Cdr.h
+--- eProsima_FastCDR-1.0.7-Linux-org/include/fastcdr/Cdr.h	2019-03-13 15:12:16.369300290 +0800
++++ eProsima_FastCDR-1.0.7-Linux/include/fastcdr/Cdr.h	2019-03-13 15:11:46.520170128 +0800
+@@ -726,6 +726,7 @@
+                  * @exception exception::NotEnoughMemoryException This exception is thrown when trying to serialize a position that exceeds the internal memory size.
+                  */
+                 Cdr& serialize(const char *string_t);
++                Cdr& serialize(const char *string_t, size_t length);
+ 
+                 /*!
+                  * @brief This function serializes a string with a different endianness.
+@@ -735,6 +736,7 @@
+                  * @exception exception::NotEnoughMemoryException This exception is thrown when trying to serialize a position that exceeds the internal memory size.
+                  */
+                 Cdr& serialize(const char *string_t, Endianness endianness);
++                Cdr& serialize(const char *string_t, size_t length, Endianness endianness);
+ 
+ 				//TODO
+ 				inline Cdr& serialize(char *string_t) {return serialize((const char*)string_t);}
+@@ -748,8 +750,10 @@
+                  * @return Reference to the eprosima::fastcdr::Cdr object.
+                  * @exception exception::NotEnoughMemoryException This exception is thrown when trying to serialize a position that exceeds the internal memory size.
+                  */
++				//inline
++				//	Cdr& serialize(const std::string &string_t) {return serialize(string_t.c_str());}
+ 				inline
+-					Cdr& serialize(const std::string &string_t) {return serialize(string_t.c_str());}
++					Cdr& serialize(const std::string &string_t) {return serialize(string_t.c_str(), string_t.size());}
+ 
+                 /*!
+                  * @brief This function serializes a std::string with a different endianness.
+@@ -758,8 +762,10 @@
+                  * @return Reference to the eprosima::fastcdr::Cdr object.
+                  * @exception exception::NotEnoughMemoryException This exception is thrown when trying to serialize a position that exceeds the internal memory size.
+                  */
++				//inline
++                //Cdr& serialize(const std::string &string_t, Endianness endianness)  {return serialize(string_t.c_str(), endianness);}
+ 				inline
+-                Cdr& serialize(const std::string &string_t, Endianness endianness)  {return serialize(string_t.c_str(), endianness);}
++                Cdr& serialize(const std::string &string_t, Endianness endianness)  {return serialize(string_t.c_str(), string_t.size(), endianness);}
+ 
+ #if HAVE_CXX0X
+                 /*!
+diff -ru eProsima_FastCDR-1.0.7-Linux-org/src/cpp/Cdr.cpp eProsima_FastCDR-1.0.7-Linux/src/cpp/Cdr.cpp
+--- eProsima_FastCDR-1.0.7-Linux-org/src/cpp/Cdr.cpp	2019-03-13 15:12:16.373300440 +0800
++++ eProsima_FastCDR-1.0.7-Linux/src/cpp/Cdr.cpp	2019-03-13 15:11:46.520170128 +0800
+@@ -570,6 +570,38 @@
+     return *this;
+ }
+ 
++Cdr& Cdr::serialize(const char *string_t, size_t str_length)
++{
++    uint32_t length = 0;
++
++    if(string_t != nullptr)
++        length = (uint32_t)str_length + 1;
++
++    if(length > 0)                                                            
++    {                                                                         
++        Cdr::state state(*this);                                              
++        serialize(length);                                                    
++                                                                              
++        if(((m_lastPosition - m_currentPosition) >= length) || resize(length))
++        {                                                                     
++            // Save last datasize.                                            
++            m_lastDataSize = sizeof(uint8_t);                                 
++                                                                              
++            m_currentPosition.memcopy(string_t, length);                      
++            m_currentPosition += length;                                      
++        }                                                                     
++        else                                                                  
++        {                                                                     
++            setState(state);                                                  
++            throw NotEnoughMemoryException(NotEnoughMemoryException::         NOT_ENOUGH_MEMORY_MESSAGE_DEFAULT);                                            
++        }                                                                     
++    }                                                                         
++    else                                                                      
++        serialize(length);                                                    
++                                                                              
++    return *this;                                                             
++}
++                                                                              
+ Cdr& Cdr::serialize(const char *string_t, Endianness endianness)
+ {
+     bool auxSwap = m_swapBytes;
+@@ -584,6 +616,25 @@
+     {
+         m_swapBytes = auxSwap;
+         ex.raise();
++    }
++
++    return *this;
++}
++
++Cdr& Cdr::serialize(const char *string_t, size_t length, Endianness endianness)    
++{                                                                                  
++    bool auxSwap = m_swapBytes;                                                    
++    m_swapBytes = (m_swapBytes && (m_endianness == endianness)) || (!m_swapBytes && (m_endianness != endianness));                                                      
++                                                                                   
++    try                                                                            
++    {                                                                              
++        serialize(string_t, length);                                               
++        m_swapBytes = auxSwap;                                                     
++    }                                                                              
++    catch(Exception &ex)                                                           
++    {
++        m_swapBytes = auxSwap;
++        ex.raise();
+     }
+ 
+     return *this;

@@ -1,0 +1,115 @@
+diff -ru eProsima_FastRTPS-1.5.0-Linux-org/include/fastrtps/utils/IPFinder.h eProsima_FastRTPS-1.5.0-Linux/include/fastrtps/utils/IPFinder.h
+--- eProsima_FastRTPS-1.5.0-Linux-org/include/fastrtps/utils/IPFinder.h	2019-03-13 15:12:40.714206582 +0800
++++ eProsima_FastRTPS-1.5.0-Linux/include/fastrtps/utils/IPFinder.h	2019-03-13 15:11:38.607866902 +0800
+@@ -61,7 +61,8 @@
+ 	IPFinder();
+ 	virtual ~IPFinder();
+ 
+-	RTPS_DllAPI static bool getIPs(std::vector<info_IP>* vec_name, bool return_loopback = false);
++	//RTPS_DllAPI static bool getIPs(std::vector<info_IP>* vec_name, bool return_loopback = false);
++	RTPS_DllAPI static bool getIPs(std::vector<info_IP>* vec_name, bool return_loopback = true);
+ 
+ 	/**
+     * Get the IP4Adresses in all interfaces.
+diff -ru eProsima_FastRTPS-1.5.0-Linux-org/src/cpp/qos/ParameterList.cpp eProsima_FastRTPS-1.5.0-Linux/src/cpp/qos/ParameterList.cpp
+--- eProsima_FastRTPS-1.5.0-Linux-org/src/cpp/qos/ParameterList.cpp	2019-03-13 15:12:41.058219295 +0800
++++ eProsima_FastRTPS-1.5.0-Linux/src/cpp/qos/ParameterList.cpp	2019-03-13 15:11:38.659868901 +0800
+@@ -402,7 +402,8 @@
+                         p->length = plength;
+                         uint32_t vec_size = 0;
+                         valid&=CDRMessage::readUInt32(msg,&vec_size);
+-                        if(!valid || msg->pos+vec_size > msg->length){
++                        //if(!valid || msg->pos+vec_size > msg->length){
++                        if(!valid || msg->pos > msg->length - vec_size){
+                             delete(p);
+                             return -1;
+                         }
+diff -ru eProsima_FastRTPS-1.5.0-Linux-org/src/cpp/rtps/builtin/discovery/endpoint/EDPSimple.cpp eProsima_FastRTPS-1.5.0-Linux/src/cpp/rtps/builtin/discovery/endpoint/EDPSimple.cpp
+--- eProsima_FastRTPS-1.5.0-Linux-org/src/cpp/rtps/builtin/discovery/endpoint/EDPSimple.cpp	2019-03-13 15:12:41.042218704 +0800
++++ eProsima_FastRTPS-1.5.0-Linux/src/cpp/rtps/builtin/discovery/endpoint/EDPSimple.cpp	2019-03-13 15:11:38.655868746 +0800
+@@ -129,6 +129,10 @@
+         watt.times.nackResponseDelay.fraction = 0;
+         watt.times.initialHeartbeatDelay.seconds = 0;
+         watt.times.initialHeartbeatDelay.fraction = 0;
++		watt.times.heartbeatPeriod.seconds = 1;
++		watt.times.heartbeatPeriod.fraction = 0;
++
++
+         if(mp_RTPSParticipant->getRTPSParticipantAttributes().throughputController.bytesPerPeriod != UINT32_MAX &&
+                 mp_RTPSParticipant->getRTPSParticipantAttributes().throughputController.periodMillisecs != 0)
+             watt.mode = ASYNCHRONOUS_WRITER;
+@@ -219,6 +223,9 @@
+         watt.times.nackResponseDelay.fraction = 0;
+         watt.times.initialHeartbeatDelay.seconds = 0;
+         watt.times.initialHeartbeatDelay.fraction = 0;
++		watt.times.heartbeatPeriod.seconds = 1;
++		watt.times.heartbeatPeriod.fraction = 0;
++
+         if(mp_RTPSParticipant->getRTPSParticipantAttributes().throughputController.bytesPerPeriod != UINT32_MAX &&
+                 mp_RTPSParticipant->getRTPSParticipantAttributes().throughputController.periodMillisecs != 0)
+             watt.mode = ASYNCHRONOUS_WRITER;
+@@ -422,7 +429,7 @@
+         watt.guid.guidPrefix = pdata->m_guid.guidPrefix;
+         watt.guid.entityId = c_EntityId_SEDPPubWriter;
+         watt.endpoint.unicastLocatorList = pdata->m_metatrafficUnicastLocatorList;
+-        watt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
++        //watt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
+         watt.endpoint.reliabilityKind = RELIABLE;
+         watt.endpoint.durabilityKind = TRANSIENT_LOCAL;
+         pdata->m_builtinWriters.push_back(watt);
+@@ -440,7 +447,7 @@
+         ratt.guid.guidPrefix = pdata->m_guid.guidPrefix;
+         ratt.guid.entityId = c_EntityId_SEDPPubReader;
+         ratt.endpoint.unicastLocatorList = pdata->m_metatrafficUnicastLocatorList;
+-        ratt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
++        //ratt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
+         ratt.endpoint.durabilityKind = TRANSIENT_LOCAL;
+         ratt.endpoint.reliabilityKind = RELIABLE;
+         pdata->m_builtinReaders.push_back(ratt);
+@@ -457,7 +464,7 @@
+         watt.guid.guidPrefix = pdata->m_guid.guidPrefix;
+         watt.guid.entityId = c_EntityId_SEDPSubWriter;
+         watt.endpoint.unicastLocatorList = pdata->m_metatrafficUnicastLocatorList;
+-        watt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
++        //watt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
+         watt.endpoint.reliabilityKind = RELIABLE;
+         watt.endpoint.durabilityKind = TRANSIENT_LOCAL;
+         pdata->m_builtinWriters.push_back(watt);
+@@ -475,7 +482,7 @@
+         ratt.guid.guidPrefix = pdata->m_guid.guidPrefix;
+         ratt.guid.entityId = c_EntityId_SEDPSubReader;
+         ratt.endpoint.unicastLocatorList = pdata->m_metatrafficUnicastLocatorList;
+-        ratt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
++        //ratt.endpoint.multicastLocatorList = pdata->m_metatrafficMulticastLocatorList;
+         ratt.endpoint.durabilityKind = TRANSIENT_LOCAL;
+         ratt.endpoint.reliabilityKind = RELIABLE;
+         pdata->m_builtinReaders.push_back(ratt);
+diff -ru eProsima_FastRTPS-1.5.0-Linux-org/src/cpp/transport/UDPv4Transport.cpp eProsima_FastRTPS-1.5.0-Linux/src/cpp/transport/UDPv4Transport.cpp
+--- eProsima_FastRTPS-1.5.0-Linux-org/src/cpp/transport/UDPv4Transport.cpp	2019-03-13 15:12:41.062219442 +0800
++++ eProsima_FastRTPS-1.5.0-Linux/src/cpp/transport/UDPv4Transport.cpp	2019-03-13 15:11:38.663869053 +0800
+@@ -30,7 +30,8 @@
+ static const uint32_t minimumSocketBuffer = 65536;
+ static const uint8_t defaultTTL = 1;
+ 
+-static void GetIP4s(vector<IPFinder::info_IP>& locNames, bool return_loopback = false)
++//static void GetIP4s(vector<IPFinder::info_IP>& locNames, bool return_loopback = false)
++static void GetIP4s(vector<IPFinder::info_IP>& locNames, bool return_loopback = true)
+ {
+     IPFinder::getIPs(&locNames, return_loopback);
+     auto newEnd = remove_if(locNames.begin(),
+@@ -210,11 +211,15 @@
+         for (const auto& infoIP : locNames)
+         {
+             auto ip = asio::ip::address_v4::from_string(infoIP.name);
++			try {
+ #if defined(ASIO_HAS_MOVE)
+             socket.set_option(ip::multicast::join_group(ip::address_v4::from_string(locator.to_IP4_string()), ip));
+ #else
+             socket->set_option(ip::multicast::join_group(ip::address_v4::from_string(locator.to_IP4_string()), ip));
+ #endif
++			} catch (std::exception &e) {
++				logWarning(RTPS_MSG_OUT, "Ignore nic bind mutiple ips error.");
++			}
+         }
+     }
+ 

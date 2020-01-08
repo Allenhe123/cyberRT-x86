@@ -1,0 +1,18 @@
+{
+   <Gentoo>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*alloc
+   ...
+   obj:/lib64/ld-*
+   ...
+}
+{
+   <Fedora>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*alloc
+   ...
+   obj:/usr/lib64/ld-*
+   ...
+}
