@@ -40,8 +40,10 @@ using apollo::cyber::croutine::RoutineState;
 
 SchedulerClassic::SchedulerClassic() {
   std::string conf("conf/");
-  conf.append(GlobalData::Instance()->ProcessGroup()).append(".conf");
+  // conf.append(GlobalData::Instance()->ProcessGroup()).append(".conf");
+  conf.append("refapp_sched_classic.conf");
   auto cfg_file = GetAbsolutePath(WorkRoot(), conf);
+  AINFO << "##SchedulerClassic cfg: " << cfg_file;
 
   apollo::cyber::proto::CyberConfig cfg;
   if (PathExists(cfg_file) && GetProtoFromFile(cfg_file, &cfg)) {
