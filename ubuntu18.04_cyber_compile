@@ -3,7 +3,7 @@ cmake version >= 3.12
 sudo apt install libasio-dev libtinyxml2-dev
 apt-get install libncurses5-dev
 
-安装automake 工具,      (ubuntu 8.04)用下面的命令安装好就可以了。
+安装automake 工具,      (ubuntu 18.04)用下面的命令安装好就可以了。
 sudo apt-get install autoconf automake libtool
 
 安装protobuffer: 
