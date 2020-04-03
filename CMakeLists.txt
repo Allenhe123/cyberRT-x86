@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
+include(GNUInstallDirs)
+
 #project setting
 project(cyber)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -104,9 +106,9 @@ FOREACH(TEST_FILE ${CYBER_TEST_SRCS})
 	target_compile_options(${TARGET_NAME} PRIVATE -Og)
 ENDFOREACH(TEST_FILE)
 
-set(CMAKE_INSTALL_BINDIR /home/allen/cyber-xavier/build/bin)
-set(CMAKE_INSTALL_LIBDIR /home/allen/cyber-xavier/build/lib)
-set(CMAKE_INSTALL_INCLUDEDIR /home/allen/cyber-xavier/build/include)
+#set(CMAKE_INSTALL_BINDIR /home/allen/cyber-xavier/build/bin)
+#set(CMAKE_INSTALL_LIBDIR /home/allen/cyber-xavier/build/lib)
+#set(CMAKE_INSTALL_INCLUDEDIR /home/allen/cyber-xavier/build/include)
 
 #install
 install(TARGETS cyber mainboard 

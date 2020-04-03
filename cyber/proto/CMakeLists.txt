@@ -10,6 +10,6 @@ add_library(cyber_proto SHARED ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(cyber_proto ${Protobuf_LIBRARIES})
 message(STATUS "protobuf_library: " ${Protobuf_LIBRARIES})
 
-set(CMAKE_INSTALL_LIBDIR /home/allen/cyber-a500/build/lib)
+#set(CMAKE_INSTALL_LIBDIR /home/allen/cyber-a500/build/lib)
 
 install(TARGETS cyber_proto LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
