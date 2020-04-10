@@ -33,6 +33,8 @@ include(cmake/Dependencies.cmake)
 #build proto files
 add_subdirectory(cyber/proto)
 
+add_subdirectory(cyber/io/example)
+
 #build googletest
 add_subdirectory(googletest)
 
