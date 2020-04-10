@@ -25,7 +25,6 @@
 #include "fastrtps/subscriber/SampleInfo.h"
 #include "fastrtps/subscriber/Subscriber.h"
 #include "fastrtps/subscriber/SubscriberListener.h"
-//#include "fastrtps/rtps/common/MatchingInfo.h"
 
 namespace apollo {
 namespace cyber {

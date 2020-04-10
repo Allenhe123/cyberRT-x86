@@ -19,37 +19,23 @@
 
 using apollo::cyber::examples::proto::Driver;
 
-void MessageCallback(const std::shared_ptr<Driver>& request, std::shared_ptr<Driver>& response) 
-{
-  AINFO << "#received from client: " << request->content();
-  AINFO << "#server: i am driver server";
-  static uint64_t id = 0;
-  ++id;
-  response->set_msg_id(id);
-  response->set_timestamp(0);
-}
-
 int main(int argc, char* argv[]) {
   apollo::cyber::Init(argv[0]);
-  std::shared_ptr<apollo::cyber::Node> node(apollo::cyber::CreateNode("start_node"));
-  auto server = node->CreateService<Driver, Driver>("test_server", MessageCallback);
-  // auto server = node->CreateService<Driver, Driver>(
-  //     "test_server", [](const std::shared_ptr<Driver>& request,
-  //                       std::shared_ptr<Driver>& response) {
-  //       AINFO << "received from client: " << request->content();
-  //       AINFO << "server: i am driver server";
-  //       static uint64_t id = 0;
-  //       ++id;
-  //       response->set_msg_id(id);
-  //       response->set_timestamp(0);
-  //     });
-
-
+  std::shared_ptr<apollo::cyber::Node> node(
+      apollo::cyber::CreateNode("start_node"));
+  auto server = node->CreateService<Driver, Driver>(
+      "test_server", [](const std::shared_ptr<Driver>& request,
+                        std::shared_ptr<Driver>& response) {
+        AINFO << "server: i am driver server";
+        static uint64_t id = 0;
+        ++id;
+        response->set_msg_id(id);
+        response->set_timestamp(0);
+      });
   auto client = node->CreateClient<Driver, Driver>("test_server");
   auto driver_msg = std::make_shared<Driver>();
   driver_msg->set_msg_id(0);
   driver_msg->set_timestamp(0);
-  driver_msg->set_content("i am client.");
   while (apollo::cyber::OK()) {
     auto res = client->SendRequest(driver_msg);
     if (res != nullptr) {

@@ -40,10 +40,8 @@ using apollo::cyber::croutine::RoutineState;
 
 SchedulerClassic::SchedulerClassic() {
   std::string conf("conf/");
-  // conf.append(GlobalData::Instance()->ProcessGroup()).append(".conf");
-  conf.append("refapp_sched_classic.conf");
+  conf.append(GlobalData::Instance()->ProcessGroup()).append(".conf");
   auto cfg_file = GetAbsolutePath(WorkRoot(), conf);
-  AINFO << "##SchedulerClassic cfg: " << cfg_file;
 
   apollo::cyber::proto::CyberConfig cfg;
   if (PathExists(cfg_file) && GetProtoFromFile(cfg_file, &cfg)) {
@@ -103,8 +101,9 @@ void SchedulerClassic::CreateProcessor() {
 
       auto proc = std::make_shared<Processor>();
       proc->BindContext(ctx);
-      proc->SetSchedAffinity(cpuset, affinity, i);
-      proc->SetSchedPolicy(processor_policy, processor_prio);
+      SetSchedAffinity(proc->Thread(), cpuset, affinity, i);
+      SetSchedPolicy(proc->Thread(), processor_policy, processor_prio,
+                     proc->Tid());
       processors_.emplace_back(proc);
     }
   }
@@ -162,7 +161,7 @@ bool SchedulerClassic::DispatchTask(const std::shared_ptr<CRoutine>& cr) {
 }
 
 bool SchedulerClassic::NotifyProcessor(uint64_t crid) {
-  if (unlikely(stop_)) {
+  if (cyber_unlikely(stop_)) {
     return true;
   }
 
@@ -183,7 +182,7 @@ bool SchedulerClassic::NotifyProcessor(uint64_t crid) {
 }
 
 bool SchedulerClassic::RemoveTask(const std::string& name) {
-  if (unlikely(stop_)) {
+  if (cyber_unlikely(stop_)) {
     return true;
   }
 

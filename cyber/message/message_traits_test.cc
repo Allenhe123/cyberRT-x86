@@ -16,11 +16,9 @@
 
 #include "cyber/message/message_traits.h"
 
-#include <gtest/gtest.h>
-#include <string.h>
 #include <string>
+#include "gtest/gtest.h"
 
-#include "cyber/message/intra_message.h"
 #include "cyber/proto/unit_test.pb.h"
 
 namespace apollo {
