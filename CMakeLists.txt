@@ -77,8 +77,6 @@ list(FILTER CYBER_SRCS EXCLUDE REGEX .*test[.]cc )
 #include_directories
 include_directories(${PROJECT_BINARY_DIR})
 message(STATUS "PROJECT_BINARY_DIR: ${PROJECT_BINARY_DIR}")
-include_directories(${PROJECT_BINARY_DIR}/cyber/proto)
-message(STATUS "{PROJECT_BINARY_DIR}/cyber/proto: ${PROJECT_BINARY_DIR}/cyber/proto")
 
 #build cyber library
 add_library(cyber SHARED ${CYBER_SRCS})
