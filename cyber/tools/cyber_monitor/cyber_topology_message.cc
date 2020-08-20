@@ -127,17 +127,19 @@ void CyberTopologyMessage::AddReaderWriter(
     col1_width_ = static_cast<int>(channelName.length());
   }
 
+// 排除自己：monitor也会创建一些reader来订阅信息，不监控这些reader
   const std::string& nodeName = role.node_name();
   if (isFromHere(nodeName)) {
     return;
   }
 
+// 每个channel创建一个Reader(MonitorReader)
   GeneralChannelMessage* channelMsg = nullptr;
   const std::string& msgTypeName = role.message_type();
   auto iter = all_channels_map_.find(channelName);
   if (iter == all_channels_map_.cend()) {
     static int index = 0;
-
+    // 找不到监控这个channel的node，则创建一个node
     std::ostringstream outStr;
     outStr << "MonitorReader" << pid_ << '-' << index++;
 
@@ -145,6 +147,7 @@ void CyberTopologyMessage::AddReaderWriter(
 
     if (channelMsg != nullptr) {
       if (!GeneralChannelMessage::isErrorCode(
+            // 创建node，然后在node上创建reader
               channelMsg->OpenChannel(channelName))) {
         channelMsg->set_message_type(msgTypeName);
         channelMsg->add_reader(channelMsg->NodeName());
