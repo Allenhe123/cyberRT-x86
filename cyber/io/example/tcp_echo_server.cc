@@ -38,11 +38,6 @@ void Echo(const std::shared_ptr<Session>& session) {
   while ((nbytes = static_cast<int>(
               session->Recv(recv_buffer.data(), recv_buffer.size(), 0))) > 0) {
     session->Write(recv_buffer.data(), nbytes);
-
-    std::cout << "echo server recv: ";
-    for (auto ite = recv_buffer.begin(); ite < recv_buffer.begin() + nbytes; ite ++)
-        std::cout << *ite;
-    std::cout << std::endl;
   }
 
   if (nbytes == 0) {

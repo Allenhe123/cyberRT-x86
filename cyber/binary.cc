@@ -14,29 +14,29 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "cyber/cyber.h"
-#include "cyber/examples/proto/examples.pb.h"
-#include "cyber/time/rate.h"
-#include "cyber/time/time.h"
+#include "cyber/binary.h"
 
-using apollo::cyber::Rate;
-using apollo::cyber::Time;
-using apollo::cyber::examples::proto::CyberRos2BridgeMsg;
+#include <mutex>
+#include <string>
 
-int main(int argc, char *argv[]) {
-  // init cyber framework
-  apollo::cyber::Init(argv[0]);
-  // create talker node
-  auto talker_node = apollo::cyber::CreateNode("talker");
-  // create talker
-  auto talker = talker_node->CreateWriter<CyberRos2BridgeMsg>("channel/chatter");
-  Rate rate(10.0);
-  while (apollo::cyber::OK()) {
-    auto msg = std::make_shared<CyberRos2BridgeMsg>();
-    msg->set_msg("Hello, Ros2, I am cyebrRT!");
-    talker->Write(msg);
-    AINFO << "talker:" << msg->msg();
-    rate.Sleep();
-  }
-  return 0;
+namespace {
+std::mutex m;
+std::string binary_name; // NOLINT
+}  // namespace
+
+namespace apollo {
+namespace cyber {
+namespace binary {
+
+std::string GetName() {
+  std::lock_guard<std::mutex> lock(m);
+  return binary_name;
 }
+void SetName(const std::string& name) {
+  std::lock_guard<std::mutex> lock(m);
+  binary_name = name;
+}
+
+}  // namespace binary
+}  // namespace cyber
+}  // namespace apollo

@@ -2,7 +2,6 @@ syntax = "proto2";
 
 package apollo.cyber.proto;
 
-// import "cyber/proto/component_conf.proto";
 import "component_conf.proto";
 
 message ComponentInfo {

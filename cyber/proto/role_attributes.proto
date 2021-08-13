@@ -2,7 +2,6 @@ syntax = "proto2";
 
 package apollo.cyber.proto;
 
-// import "cyber/proto/qos_profile.proto";
 import "qos_profile.proto";
 
 message SocketAddr {

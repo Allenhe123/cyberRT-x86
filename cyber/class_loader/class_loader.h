@@ -17,11 +17,12 @@
 #define CYBER_CLASS_LOADER_CLASS_LOADER_H_
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
-#include <functional>
+
 #include "cyber/class_loader/class_loader_register_macro.h"
 
 namespace apollo {

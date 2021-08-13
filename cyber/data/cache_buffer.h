@@ -17,10 +17,10 @@
 #ifndef CYBER_DATA_CACHE_BUFFER_H_
 #define CYBER_DATA_CACHE_BUFFER_H_
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <functional>
 
 namespace apollo {
 namespace cyber {

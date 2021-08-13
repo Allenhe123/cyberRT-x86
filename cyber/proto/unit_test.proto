@@ -35,4 +35,3 @@ message Needata {
     optional bytes data8 = 12;
     optional bytes data9 = 13;
 };
-

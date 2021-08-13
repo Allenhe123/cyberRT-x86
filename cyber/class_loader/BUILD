@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("//tools:cpplint.bzl", "cpplint")
 
 package(default_visibility = ["//visibility:public"])
@@ -15,12 +16,10 @@ cc_library(
         "utility/class_factory.h",
         "utility/class_loader_utility.h",
     ],
-    linkopts = [
-        "-lPocoFoundation",
-    ],
     deps = [
         "//cyber:init",
         "//cyber/common:log",
+        "@poco//:PocoFoundation",
     ],
 )
 
@@ -45,7 +44,7 @@ cc_test(
         "//cyber",
         "//cyber/class_loader/test:base",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 

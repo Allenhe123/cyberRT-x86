@@ -2,7 +2,6 @@ syntax = "proto2";
 
 package apollo.cyber.proto;
 
-// import "cyber/proto/role_attributes.proto";
 import "role_attributes.proto";
 
 enum ChangeType {

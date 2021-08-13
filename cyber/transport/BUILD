@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("//tools:cpplint.bzl", "cpplint")
 
 package(default_visibility = ["//visibility:public"])
@@ -33,12 +34,12 @@ cc_library(
 
 cc_test(
     name = "transport_test",
-    size = "small",
+    size = "large",
     srcs = ["transport_test.cc"],
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -59,7 +60,7 @@ cc_test(
     srcs = ["common/endpoint_test.cc"],
     deps = [
         "//cyber:cyber_core",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -78,7 +79,7 @@ cc_test(
     srcs = ["common/identity_test.cc"],
     deps = [
         "//cyber:cyber_core",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -88,7 +89,7 @@ cc_test(
     srcs = ["common/common_test.cc"],
     deps = [
         "//cyber:cyber_core",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -111,7 +112,7 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -133,7 +134,7 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -158,7 +159,7 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -184,7 +185,7 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -224,7 +225,7 @@ cc_test(
     srcs = ["message/message_info_test.cc"],
     deps = [
         "//cyber:cyber_core",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -234,7 +235,7 @@ cc_test(
     srcs = ["message/message_test.cc"],
     deps = [
         "//cyber:cyber_core",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -308,7 +309,7 @@ cc_library(
     hdrs = ["rtps/underlay_message.h"],
     deps = [
         "//cyber/common:log",
-        "@fastrtps",
+        "@fastcdr",
     ],
 )
 
@@ -340,6 +341,7 @@ cc_library(
     hdrs = ["rtps/underlay_message_type.h"],
     deps = [
         ":underlay_message",
+        "@fastcdr",
         "@fastrtps",
     ],
 )
@@ -350,7 +352,8 @@ cc_test(
     srcs = ["rtps/rtps_test.cc"],
     deps = [
         "//cyber:cyber_core",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
+        "@fastcdr",
     ],
 )
 
@@ -530,7 +533,7 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -541,7 +544,7 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -552,7 +555,7 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -563,17 +566,17 @@ cc_test(
     deps = [
         "//cyber:cyber_core",
         "//cyber/proto:unit_test_cc_proto",
-        "@gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 
 cc_test(
     name = "condition_notifier_test",
-    size = "small",
+    size = "large",
     srcs = ["shm/condition_notifier_test.cc"],
     deps = [
         "//cyber:cyber_core",
-        "@gtest//:main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 

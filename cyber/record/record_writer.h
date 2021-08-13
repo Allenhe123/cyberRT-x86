@@ -18,6 +18,7 @@
 #define CYBER_RECORD_RECORD_WRITER_H_
 
 #include <cstdint>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -25,10 +26,11 @@
 #include <string>
 #include <unordered_map>
 
+#include "cyber/proto/record.pb.h"
+
 #include "cyber/common/log.h"
 #include "cyber/message/message_traits.h"
 #include "cyber/message/raw_message.h"
-#include "cyber/proto/record.pb.h"
 #include "cyber/record/file/record_file_writer.h"
 #include "cyber/record/header_builder.h"
 #include "cyber/record/record_base.h"
@@ -168,6 +170,11 @@ class RecordWriter : public RecordBase {
    */
   bool IsNewChannel(const std::string& channel_name) const;
 
+  /**
+   * @brief Meant for testing
+   */
+  void WaitForWrite();
+
  private:
   bool WriteMessage(const proto::SingleMessage& single_msg);
   bool SplitOutfile();
@@ -184,7 +191,9 @@ class RecordWriter : public RecordBase {
   MessageTypeMap channel_message_type_map_;
   MessageProtoDescMap channel_proto_desc_map_;
   FileWriterPtr file_writer_ = nullptr;
-  FileWriterPtr file_writer_backup_ = nullptr;
+  // Initialize with a dummy value to simplify checking later
+  std::future<void> old_file_writer_closer_ =
+      std::async(std::launch::async, []() {});
   std::mutex mutex_;
   std::stringstream sstream_;
 };
