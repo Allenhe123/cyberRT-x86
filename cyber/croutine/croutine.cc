@@ -62,7 +62,9 @@ CRoutine::CRoutine(const std::function<void()> &func) : func_(func) {
   }
 
   MakeContext(CRoutineEntry, this, context_.get());
+  // 创建协程后，默认是READY状态
   state_ = RoutineState::READY;
+  // updated设置成true
   updated_.test_and_set(std::memory_order_release);
 }
 

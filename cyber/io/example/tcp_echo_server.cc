@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
         std::cout << "accepted" << std::endl;
         auto routine_name =
             "connected session" + std::to_string(Time::Now().ToNanosecond());
+        // 协程入口函数内继续创建一个协程用于收发数据
         apollo::cyber::scheduler::Instance()->CreateTask(
             std::bind(Echo, conn_session), routine_name);
       },

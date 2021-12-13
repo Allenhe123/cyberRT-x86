@@ -107,6 +107,7 @@ class CRoutine {
 
   std::shared_ptr<RoutineContext> context_;
 
+// atomic_flag原子布尔类型是免锁的
   std::atomic_flag lock_ = ATOMIC_FLAG_INIT;
   std::atomic_flag updated_ = ATOMIC_FLAG_INIT;
 
@@ -173,6 +174,7 @@ inline void CRoutine::set_processor_id(int processor_id) {
   processor_id_ = processor_id;
 }
 
+// 此处修改协程的状态，在ClassicContext::NextRoutine()中被调用
 inline RoutineState CRoutine::UpdateState() {
   // Synchronous Event Mechanism
   if (state_ == RoutineState::SLEEP &&
@@ -182,6 +184,7 @@ inline RoutineState CRoutine::UpdateState() {
   }
 
   // Asynchronous Event Mechanism
+  // 原子地设置标志为true并获得其先前值
   if (!updated_.test_and_set(std::memory_order_release)) {
     if (state_ == RoutineState::DATA_WAIT || state_ == RoutineState::IO_WAIT) {
       state_ = RoutineState::READY;
@@ -203,6 +206,7 @@ inline void CRoutine::Release() {
 }
 
 inline void CRoutine::SetUpdateFlag() {
+  // 原子地设置标志为false
   updated_.clear(std::memory_order_release);
 }
 

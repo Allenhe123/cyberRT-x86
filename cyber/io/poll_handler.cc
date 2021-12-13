@@ -46,8 +46,11 @@ bool PollHandler::Block(int timeout_ms, bool is_read) {
     return false;
   }
 
+  // 协程日寇函数中的某个调用（Accept）阻塞，协程主动Yield
+  // IO事件就绪后，调用PollHandler::ResponseCallback()，协程返回执行
   routine_->Yield(RoutineState::IO_WAIT);
 
+  // 协程返回时从此处开始继续执行
   bool result = false;
   uint32_t target_events = is_read ? EPOLLIN : EPOLLOUT;
   if (response_.events & target_events) {

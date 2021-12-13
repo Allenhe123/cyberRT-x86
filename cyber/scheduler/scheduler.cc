@@ -69,6 +69,7 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
   return true;
 }
 
+// IO有数据可读后调用NotifyTask(crid)
 bool Scheduler::NotifyTask(uint64_t crid) {
   if (cyber_unlikely(stop_.load())) {
     return true;
