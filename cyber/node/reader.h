@@ -254,6 +254,7 @@ void Reader<MessageT>::Observe() {
   blocker_->Observe();
 }
 
+// 真正创建协程的地方
 template <typename MessageT>
 bool Reader<MessageT>::Init() {
   if (init_.exchange(true)) {
@@ -266,7 +267,7 @@ bool Reader<MessageT>::Init() {
       this->reader_func_(msg);
     };
   } else {
-    func = [this](const std::shared_ptr<MessageT>& msg) { this->Enqueue(msg); };
+    func = [this](const std::shared_ptr<MessageT>& msg) { this->Enqueue(msg); }; // call this
   }
   auto sched = scheduler::Instance();
   croutine_name_ = role_attr_.node_name() + "_" + role_attr_.channel_name();

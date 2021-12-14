@@ -197,14 +197,17 @@ inline uint32_t CRoutine::priority() const { return priority_; }
 
 inline void CRoutine::set_priority(uint32_t priority) { priority_ = priority; }
 
+// 原子地设置标志为true并返回原来的值
 inline bool CRoutine::Acquire() {
   return !lock_.test_and_set(std::memory_order_acquire);
 }
-
+ // 原子地设置标志为false
 inline void CRoutine::Release() {
   return lock_.clear(std::memory_order_release);
 }
 
+// SchedulerXXX::NotifyProcessor中调用该函数将updated_设置为false
+// 也就是说此协程IO结束可以被调度运行了
 inline void CRoutine::SetUpdateFlag() {
   // 原子地设置标志为false
   updated_.clear(std::memory_order_release);

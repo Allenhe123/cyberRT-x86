@@ -187,7 +187,7 @@ bool Component<M0, NullType, NullType, NullType>::Initialize(
   auto func = [self](const std::shared_ptr<M0>& msg) {
     auto ptr = self.lock();
     if (ptr) {
-      // 调用实际派生类的Process函数
+      // 调用Process函数，Process函数中调用派生类的Proc函数
       ptr->Process(msg);
     } else {
       AERROR << "Component object has been destroyed.";

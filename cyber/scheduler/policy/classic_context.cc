@@ -57,6 +57,7 @@ std::shared_ptr<CRoutine> ClassicContext::NextRoutine() {
   for (int i = MAX_PRIO - 1; i >= 0; --i) {
     ReadLockGuard<AtomicRWLock> lk(lq_->at(i));
     for (auto& cr : multi_pri_rq_->at(i)) {
+      //协程已经被Acquire则continue
       if (!cr->Acquire()) {
         continue;
       }
@@ -64,7 +65,8 @@ std::shared_ptr<CRoutine> ClassicContext::NextRoutine() {
       if (cr->UpdateState() == RoutineState::READY) {
         return cr;
       }
-
+      
+      // 协程没有READY则Release，因为Acquire的时候设置为true了
       cr->Release();
     }
   }

@@ -39,6 +39,7 @@ bool Scheduler::CreateTask(const RoutineFactory& factory,
   return CreateTask(factory.create_routine(), name, factory.GetDataVisitor());
 }
 
+// 创建协程！
 bool Scheduler::CreateTask(std::function<void()>&& func,
                            const std::string& name,
                            std::shared_ptr<DataVisitorBase> visitor) {
