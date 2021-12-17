@@ -187,6 +187,7 @@ auto NodeChannelImpl::CreateReader(const std::string& channel_name,
   return this->template CreateReader<MessageT>(role_attr, reader_func);
 }
 
+// component方式调用这个函数创建reader，reader_func == nullptr
 template <typename MessageT>
 auto NodeChannelImpl::CreateReader(const ReaderConfig& config,
                                    const CallbackFunc<MessageT>& reader_func)
@@ -198,6 +199,8 @@ auto NodeChannelImpl::CreateReader(const ReaderConfig& config,
                                                config.pending_queue_size);
 }
 
+// 二进制方式创建reader时，reader_func != nullptr
+// component方式创建reader，reader_func == nullptr
 template <typename MessageT>
 auto NodeChannelImpl::CreateReader(const proto::RoleAttributes& role_attr,
                                    const CallbackFunc<MessageT>& reader_func,
@@ -222,8 +225,6 @@ auto NodeChannelImpl::CreateReader(const proto::RoleAttributes& role_attr,
 
   RETURN_VAL_IF_NULL(reader_ptr, nullptr);
   // 在Reader的Init()函数里面创建名字为{nodename}_{channelname}的Task
-  // 这个task只是将收到的数据缓存了一下（enqueue到Blocker的published_queue中），啥也没干啊!!!
-  // 注释掉这个CR试试看？
   RETURN_VAL_IF(!reader_ptr->Init(), nullptr);
   return reader_ptr;
 }

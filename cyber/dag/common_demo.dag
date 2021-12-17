@@ -1,0 +1,13 @@
+# Define all coms in DAG streaming.
+    module_config {
+    module_library : "/home/allen/opensource/cyber-x86/build/libcomponent_demo.so"
+    components {
+        class_name : "ComponentDemo"
+        config {
+            name : "common_demo"
+            readers {
+                channel: "/apollo/test"
+            }
+        }
+      }
+    }

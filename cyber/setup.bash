@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 TOP_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd -P)"
+echo "TOP_DIR: $TOP_DIR"
 source ${TOP_DIR}/scripts/apollo.bashrc
+
+export APOLLO_ROOT_DIR=$TOP_DIR
 
 export APOLLO_BAZEL_DIST_DIR="${APOLLO_CACHE_DIR}/distdir"
 export CYBER_PATH="${APOLLO_ROOT_DIR}/cyber"

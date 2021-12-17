@@ -218,7 +218,8 @@ bool Component<M0, NullType, NullType, NullType>::Initialize(
   croutine::RoutineFactory factory =
       croutine::CreateRoutineFactory<M0>(func, dv);
   auto sched = scheduler::Instance();
-  // 创建名为node name的task
+  // 创建名为nodename的task,接收通道为readers_[0]->ChannelId()
+  // component方式用这个task通信! 回调函数里面调用Proc函数!
   return sched->CreateTask(factory, node_->Name());
 }
 

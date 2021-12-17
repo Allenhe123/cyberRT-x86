@@ -255,6 +255,8 @@ void Reader<MessageT>::Observe() {
 }
 
 // 真正创建协程的地方
+// 二进制方式创建reader时，reader_func != nullptr
+// component方式创建reader，reader_func == nullptr
 template <typename MessageT>
 bool Reader<MessageT>::Init() {
   if (init_.exchange(true)) {
@@ -262,12 +264,14 @@ bool Reader<MessageT>::Init() {
   }
   std::function<void(const std::shared_ptr<MessageT>&)> func;
   if (reader_func_ != nullptr) {
+    // 二进制方式的协程任务入口点函数
     func = [this](const std::shared_ptr<MessageT>& msg) {
       this->Enqueue(msg);
       this->reader_func_(msg);
     };
   } else {
-    func = [this](const std::shared_ptr<MessageT>& msg) { this->Enqueue(msg); }; // call this
+    // component方式的协程任务入口点函数
+    func = [this](const std::shared_ptr<MessageT>& msg) { this->Enqueue(msg); };
   }
   auto sched = scheduler::Instance();
   croutine_name_ = role_attr_.node_name() + "_" + role_attr_.channel_name();
@@ -276,6 +280,8 @@ bool Reader<MessageT>::Init() {
   // Using factory to wrap templates.
   croutine::RoutineFactory factory =
       croutine::CreateRoutineFactory<MessageT>(std::move(func), dv);
+  // 二进制方式的通信用这个task
+  // componet方式通信不用这个task，用名为nodename的task! 这个task将收到的数据缓存（enqueue到Blocker的published_queue中）
   if (!sched->CreateTask(factory, croutine_name_)) {
     AERROR << "Create Task Failed!";
     init_.store(false);

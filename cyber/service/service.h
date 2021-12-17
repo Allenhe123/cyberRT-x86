@@ -162,6 +162,7 @@ bool Service<Request, Response>::Init() {
   if (IsInit()) {
     return true;
   }
+  // 创建transmitter用于发布response
   proto::RoleAttributes role;
   role.set_node_name(node_name_);
   role.set_channel_name(response_channel_);
@@ -180,7 +181,7 @@ bool Service<Request, Response>::Init() {
   request_callback_ =
       std::bind(&Service<Request, Response>::HandleRequest, this,
                 std::placeholders::_1, std::placeholders::_2);
-
+  // 创建receiver用于订阅request
   role.set_channel_name(request_channel_);
   channel_id = common::GlobalData::RegisterChannel(request_channel_);
   role.set_channel_id(channel_id);
@@ -217,6 +218,7 @@ void Service<Request, Response>::HandleRequest(
   ADEBUG << "handling request:" << request_channel_;
   std::lock_guard<std::mutex> lk(service_handle_request_mutex_);
   auto response = std::make_shared<Response>();
+  // 调用service callback
   service_callback_(request, response);
   transport::MessageInfo msg_info(message_info);
   msg_info.set_sender_id(response_transmitter_->id());
