@@ -64,6 +64,7 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
       if (cyber_unlikely(stop_.load())) {
         return;
       }
+      // 实际cyber通信调用的接口进行通知数据到来
       this->NotifyProcessor(task_id);
     });
   }
@@ -71,6 +72,7 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
 }
 
 // IO有数据可读后调用NotifyTask(crid)
+// 实际cyber通信不会调用这个接口来通知数据到来，poll_handler.cc中用到，用来协助编写网络程序
 bool Scheduler::NotifyTask(uint64_t crid) {
   if (cyber_unlikely(stop_.load())) {
     return true;

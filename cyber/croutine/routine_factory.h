@@ -58,7 +58,7 @@ RoutineFactory CreateRoutineFactory(
       for (;;) {
         CRoutine::GetCurrentRoutine()->set_state(RoutineState::DATA_WAIT);
         if (dv->TryFetch(msg)) {
-          f(msg);
+          f(msg);     // 创建reader传进来的回调函数
           CRoutine::Yield(RoutineState::READY);
         } else {
           CRoutine::Yield();
