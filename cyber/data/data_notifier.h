@@ -39,6 +39,7 @@ struct Notifier {
   std::function<void()> callback;
 };
 
+// 单例，进程内唯一
 class DataNotifier {
  public:
   using NotifyVector = std::vector<std::shared_ptr<Notifier>>;
@@ -70,6 +71,7 @@ inline void DataNotifier::AddNotifier(
   }
 }
 
+// 每个channel可对应1个或多个notifier，notifier是创建dv的时候创建的，每个dv对应1个notifier
 inline bool DataNotifier::Notify(const uint64_t channel_id) {
   NotifyVector* notifies = nullptr;
   if (notifies_map_.Get(channel_id, &notifies)) {

@@ -58,7 +58,13 @@ RoutineFactory CreateRoutineFactory(
       for (;;) {
         CRoutine::GetCurrentRoutine()->set_state(RoutineState::DATA_WAIT);
         if (dv->TryFetch(msg)) {
-          f(msg);     // 创建reader传进来的回调函数
+          // 创建reader传进来的回调函数
+          f(msg);
+          // 若该协程上次成功拿到了数据，则state设置为READY，下次还会执行，直到拿不到数据而YIELD为止（此时状态是上面设置的DATA_WAIT）
+          // 状态变成DATA_WAIT后，NextRoutine()是不会返回该协程的，也就没有机会执行了，那什么时候它再获得执行的机会呢？
+          // dv->RegisterNotifyCallback()->XXXContext::NotifyProcessor(crid)->updated_.Clear()将updated_变成false
+          // 完成异步事件通知，XXXContext::NextRoutine()->cr->UpdateState()函数中将cr的state设置成READY，
+          // 那么下次又有机会被执行了。
           CRoutine::Yield(RoutineState::READY);
         } else {
           CRoutine::Yield();

@@ -60,6 +60,7 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
   }
 
   if (visitor != nullptr) {
+    // visitor在此处注册的callback函数在datavisitor的成员变量data_notifier的函数Notify()中调用
     visitor->RegisterNotifyCallback([this, task_id]() {
       if (cyber_unlikely(stop_.load())) {
         return;

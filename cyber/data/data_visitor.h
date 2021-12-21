@@ -176,6 +176,9 @@ class DataVisitor<M0, NullType, NullType, NullType> : public DataVisitorBase {
 
   DataVisitor(uint64_t channel_id, uint32_t queue_size)
       : buffer_(channel_id, new BufferType<M0>(queue_size)) {
+    // 将buffer加入Dispatcher中去，Dispatcher会将收到的数据放入buffer中
+    // 然后调用(Dispatcher中可以直接拿到DataNotifier::Instance())data_notifier::Notify()接口使协程READY执行来取数据
+    // -> 具体实现参见Dispatcher::Dispatch()函数
     DataDispatcher<M0>::Instance()->AddBuffer(buffer_);
     data_notifier_->AddNotifier(buffer_.channel_id(), notifier_);
   }

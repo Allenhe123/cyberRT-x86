@@ -62,6 +62,7 @@ std::shared_ptr<CRoutine> ClassicContext::NextRoutine() {
         continue;
       }
 
+      // 所有协程创建后state默认时READY，也就是第一次是可以运行的
       if (cr->UpdateState() == RoutineState::READY) {
         return cr;
       }
