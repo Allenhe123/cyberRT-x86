@@ -105,6 +105,7 @@ bool TopologyManager::InitServiceManager() {
 }
 
 bool TopologyManager::CreateParticipant() {
+  // 主机名+进程Id作为participant_name
   std::string participant_name =
       common::GlobalData::Instance()->HostName() + '+' +
       std::to_string(common::GlobalData::Instance()->ProcessId());

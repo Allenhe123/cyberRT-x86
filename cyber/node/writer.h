@@ -127,6 +127,7 @@ bool Writer<MessageT>::Init() {
     if (init_) {
       return true;
     }
+    // writer的init比较简单，创建transmitter
     transmitter_ =
         transport::Transport::Instance()->CreateTransmitter<MessageT>(
             role_attr_);
@@ -136,8 +137,10 @@ bool Writer<MessageT>::Init() {
     init_ = true;
   }
   this->role_attr_.set_id(transmitter_->id().HashValue());
-  channel_manager_ =
-      service_discovery::TopologyManager::Instance()->channel_manager();
+  // 单例对象！ 第一次时初始化NodeManager，ChannelManager，ServiceManager
+  // 并开启它们的服务发现功能
+  channel_manager_ = service_discovery::TopologyManager::Instance()->channel_manager();
+  // 加入拓扑：
   JoinTheTopology();
   return true;
 }

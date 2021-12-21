@@ -288,6 +288,7 @@ bool Reader<MessageT>::Init() {
     return false;
   }
 
+  // 创建Receiver(将DataDispathcer::Dispatch()接口注册给Receiver)
   receiver_ = ReceiverManager<MessageT>::Instance()->GetReceiver(role_attr_);
   this->role_attr_.set_id(receiver_->id().HashValue());
   channel_manager_ =
