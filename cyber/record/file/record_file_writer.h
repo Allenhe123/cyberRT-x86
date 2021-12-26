@@ -110,6 +110,7 @@ class RecordFileWriter : public RecordFileBase {
 template <typename T>
 bool RecordFileWriter::WriteSection(const T& message) {
   proto::SectionType type;
+  // is_same<X,Y>::value用于判断X和Y是否是同一类型
   if (std::is_same<T, proto::ChunkHeader>::value) {
     type = proto::SectionType::SECTION_CHUNK_HEADER;
   } else if (std::is_same<T, proto::ChunkBody>::value) {
@@ -133,6 +134,7 @@ bool RecordFileWriter::WriteSection(const T& message) {
   memset(&section, 0, sizeof(section));
   section.type = type;
   section.size = static_cast<int64_t>(message.ByteSizeLong());
+  // 先写Section的类型和大小
   ssize_t count = write(fd_, &section, sizeof(section));
   if (count < 0) {
     AERROR << "Write fd failed, fd: " << fd_ << ", errno: " << errno;
@@ -145,10 +147,12 @@ bool RecordFileWriter::WriteSection(const T& message) {
     return false;
   }
   {
+    //写Secton的内容--zero copy方式
     google::protobuf::io::FileOutputStream raw_output(fd_);
     message.SerializeToZeroCopyStream(&raw_output);
   }
   if (type == proto::SectionType::SECTION_HEADER) {
+    // 若是section header则补齐到2048bytes
     static char blank[HEADER_LENGTH] = {'0'};
     count = write(fd_, &blank, HEADER_LENGTH - message.ByteSizeLong());
     if (count < 0) {

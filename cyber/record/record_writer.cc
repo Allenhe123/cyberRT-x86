@@ -43,6 +43,7 @@ bool RecordWriter::Open(const std::string& file) {
   sstream_.str(std::string());
   sstream_.clear();
   sstream_ << "." << std::setw(5) << std::setfill('0') << file_index_++;
+  // segmented every n second(s);segmented every n megabyte(s)
   if (header_.segment_interval() > 0 || header_.segment_raw_size() > 0) {
     path_ = file_ + sstream_.str();
   } else {

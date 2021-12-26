@@ -177,6 +177,7 @@ bool RecordFileWriter::WriteMessage(const proto::SingleMessage& message) {
     channel_message_number_map_.insert(
         std::make_pair(message.channel_name(), 1));
   }
+  // 是否需要切割文件
   bool need_flush = false;
   if (header_.chunk_interval() > 0 &&
       message.time() - chunk_active_->header_.begin_time() >
@@ -190,7 +191,7 @@ bool RecordFileWriter::WriteMessage(const proto::SingleMessage& message) {
   if (!need_flush) {
     return true;
   }
-
+  // 判断上一个flush异步任务是否结束
   ACHECK(flush_task_.wait_for(std::chrono::milliseconds(0)) ==
          std::future_status::ready)
       << "Flushing didn't finish. Either the hardware cannot keep up or the "
@@ -199,6 +200,7 @@ bool RecordFileWriter::WriteMessage(const proto::SingleMessage& message) {
   flush_task_ = std::async(
       std::launch::async,
       [this, chunk = std::move(chunk_active_)]() { this->Flush(*chunk); });
+  // 重新创建一个chunk    
   chunk_active_ = std::make_unique<Chunk>();
 
   return true;

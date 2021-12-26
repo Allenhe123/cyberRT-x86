@@ -229,6 +229,7 @@ bool RecordWriter::WriteMessage(const std::string& channel_name,
                                 const std::string& proto_desc) {
   const std::string& message_type = GetMessageType(channel_name);
   if (message_type.empty()) {
+    // 第一次写这个channel的时候先写channel
     if (!WriteChannel(channel_name, message::GetMessageName<MessageT>(),
                       proto_desc)) {
       AERROR << "Failed to write meta data to channel [" << channel_name
@@ -247,6 +248,7 @@ bool RecordWriter::WriteMessage(const std::string& channel_name,
     AERROR << "Failed to serialize message, channel: " << channel_name;
     return false;
   }
+  // 然后调用特化版本写message
   return WriteMessage(channel_name, content, time_nanosec);
 }
 

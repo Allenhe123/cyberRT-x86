@@ -195,8 +195,10 @@ bool Recorder::InitReaderImpl(const std::string& channel_name,
     };
     ReaderConfig config;
     config.channel_name = channel_name;
+    // queuesize=50太小了，数据大的话会丢帧
     config.pending_queue_size =
         gflags::Int32FromEnv("CYBER_PENDING_QUEUE_SIZE", 50);
+    // 直接从channel读取rawmessage?
     reader = node_->CreateReader<RawMessage>(config, callback);
     if (reader == nullptr) {
       AERROR << "Create reader failed.";
