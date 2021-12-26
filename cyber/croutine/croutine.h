@@ -119,6 +119,7 @@ class CRoutine {
 
   std::string group_name_;
 
+// thread_local变量每个线程保留一份副本
   static thread_local CRoutine *current_routine_;
   static thread_local char *main_stack_;
 };
