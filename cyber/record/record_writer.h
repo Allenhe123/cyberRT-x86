@@ -229,7 +229,7 @@ bool RecordWriter::WriteMessage(const std::string& channel_name,
                                 const std::string& proto_desc) {
   const std::string& message_type = GetMessageType(channel_name);
   if (message_type.empty()) {
-    // 第一次写这个channel的时候先写channel
+    // 如果查寻不到channel的信息则先写channel信息
     if (!WriteChannel(channel_name, message::GetMessageName<MessageT>(),
                       proto_desc)) {
       AERROR << "Failed to write meta data to channel [" << channel_name

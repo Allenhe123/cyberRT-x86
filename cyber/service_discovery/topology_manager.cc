@@ -93,6 +93,7 @@ bool TopologyManager::Init() {
 }
 
 bool TopologyManager::InitNodeManager() {
+  // fastrtps_participant()第一次调用时创建fastrtps participant
   return node_manager_->StartDiscovery(participant_->fastrtps_participant());
 }
 

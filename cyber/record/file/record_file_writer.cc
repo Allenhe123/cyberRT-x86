@@ -50,21 +50,30 @@ bool RecordFileWriter::Open(const std::string& path) {
            << ", errno: " << errno;
     return false;
   }
+  // 创建chunk
   chunk_active_ = std::make_unique<Chunk>();
   return true;
 }
 
+// 析构函数中会调用Close()，所以切割文件时会调到这里
 void RecordFileWriter::Close() {
   if (fd_ < 0) {
     return;
   }
+  // 等待flush_task异步任务完成
   flush_task_.wait();
   Flush(*chunk_active_);
 
+  // 写index，index中包含了各个部分的type，pos，cache信息(
+  // channel_cache: channel的msg数量，name，msg_type,proto_desc
+  // chunk_header_cache: msg number, begin_time, end_time, raw_size
+  // chunk_body_cache:msg number
+  // )
   if (!WriteIndex()) {
     AERROR << "Write index section failed, file: " << path_;
   }
 
+  // 写更新后的header信息: 里面有index_position，可以先读出index数据再根据position读取其余各个部分
   header_.set_is_complete(true);
   if (!WriteHeader(header_)) {
     AERROR << "Overwrite header section failed, file: " << path_;
@@ -167,6 +176,7 @@ bool RecordFileWriter::WriteChunk(const ChunkHeader& chunk_header,
   return true;
 }
 
+// WriteMessage只是将message放入chunk中，真正落盘是在split文件或者close文件的时候
 bool RecordFileWriter::WriteMessage(const proto::SingleMessage& message) {
   CHECK_GE(fd_, 0) << "First, call Open";
   chunk_active_->add(message);

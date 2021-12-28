@@ -87,10 +87,12 @@ bool RecordWriter::SplitOutfile() {
     AERROR << "Failed to open record file: " << path_;
     return false;
   }
+  // 新的record文件中写入header
   if (!file_writer_->WriteHeader(header_)) {
     AERROR << "Failed to write header for record file: " << path_;
     return false;
   }
+  // 新的record文件中写入每个channel的信息
   for (const auto& i : channel_message_number_map_) {
     Channel channel;
     channel.set_name(i.first);
@@ -141,6 +143,7 @@ bool RecordWriter::WriteMessage(const SingleMessage& message) {
     segment_begin_time_ = message.time();
   }
 
+  // 是否需要切割文件
   if ((header_.segment_interval() > 0 &&
        message.time() - segment_begin_time_ > header_.segment_interval()) ||
       (header_.segment_raw_size() > 0 &&

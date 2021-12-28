@@ -119,6 +119,7 @@ bool RecordFileWriter::WriteSection(const T& message) {
     type = proto::SectionType::SECTION_CHANNEL;
   } else if (std::is_same<T, proto::Header>::value) {
     type = proto::SectionType::SECTION_HEADER;
+    // Header要写2次，第1次不全，所有数据写完后更新header，再写1次
     if (!SetPosition(0)) {
       AERROR << "Jump to position #0 failed";
       return false;

@@ -31,6 +31,7 @@ RecordReader::~RecordReader() {}
 
 RecordReader::RecordReader(const std::string& file) {
   file_reader_.reset(new RecordFileReader());
+  // 打开文件，读取header
   if (!file_reader_->Open(file)) {
     AERROR << "Failed to open record file: " << file;
     return;
@@ -38,6 +39,7 @@ RecordReader::RecordReader(const std::string& file) {
   chunk_.reset(new ChunkBody());
   is_valid_ = true;
   header_ = file_reader_->GetHeader();
+  // 读取index(header中保存有index信息的offset)
   if (file_reader_->ReadIndex()) {
     index_ = file_reader_->GetIndex();
     for (int i = 0; i < index_.indexes_size(); ++i) {
@@ -54,6 +56,7 @@ RecordReader::RecordReader(const std::string& file) {
           std::make_pair(channel_cache->name(), *channel_cache));
     }
   }
+  // 文件指针重新移动到header后面
   file_reader_->Reset();
 }
 

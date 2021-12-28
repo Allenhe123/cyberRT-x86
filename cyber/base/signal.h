@@ -27,6 +27,11 @@ namespace apollo {
 namespace cyber {
 namespace base {
 
+  // 信号槽-观察者模式的一种实现，信号是一个能被观察的事件，槽是一个观察者，也是被观察对象发生改变被调用的函数
+  // 信号与槽是多对多的关系，一个信号可连接多个和槽，一个槽也可以监听多个信号
+
+  // 此处实现以signal为主，1个signal关联多个slot
+
 template <typename... Args>
 class Slot;
 
@@ -79,11 +84,13 @@ class Signal {
       for (auto& slot : slots_) {
         if (conn.HasSlot(slot)) {
           find = true;
+          // 将slot标记为disconnect
           slot->Disconnect();
         }
       }
     }
 
+  // 根据上面的disconnect标记清理删除slot
     if (find) {
       ClearDisconnectedSlots();
     }

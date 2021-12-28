@@ -238,6 +238,7 @@ void ChannelManager::Dispose(const ChangeMsg& msg) {
   Notify(msg);
 }
 
+// 在TopologyManager::OnParticipantChange()中被调用
 void ChannelManager::OnTopoModuleLeave(const std::string& host_name,
                                        int process_id) {
   RETURN_IF(!is_discovery_started_.load());
