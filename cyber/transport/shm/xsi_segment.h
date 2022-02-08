@@ -23,6 +23,7 @@ namespace apollo {
 namespace cyber {
 namespace transport {
 
+// systemv的共享内存实现
 class XsiSegment : public Segment {
  public:
   explicit XsiSegment(uint64_t channel_id);

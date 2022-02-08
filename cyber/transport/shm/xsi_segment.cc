@@ -71,14 +71,17 @@ bool XsiSegment::OpenOrCreate() {
   managed_shm_ = shmat(shmid, nullptr, 0);
   if (managed_shm_ == reinterpret_cast<void*>(-1)) {
     AERROR << "attach shm failed, error: " << strerror(errno);
+    // 共享内存不会随着程序结束而自动消除，要么调用shmctl删除，要么自己用手敲命令去删除，否则永远留在系统中
     shmctl(shmid, IPC_RMID, 0);
     return false;
   }
 
   // create field state_
+  // （placement new）在已分配的原始内存中初始化一个对象
   state_ = new (managed_shm_) State(conf_.ceiling_msg_size());
   if (state_ == nullptr) {
     AERROR << "create state failed.";
+    // shmdt将使相关shmid_ds结构中的shm_nattch计数器值减1
     shmdt(managed_shm_);
     managed_shm_ = nullptr;
     shmctl(shmid, IPC_RMID, 0);
@@ -88,6 +91,7 @@ bool XsiSegment::OpenOrCreate() {
   conf_.Update(state_->ceiling_msg_size());
 
   // create field blocks_
+  // 起始地址偏移State大小的字节处存放block数组
   blocks_ = new (static_cast<char*>(managed_shm_) + sizeof(State))
       Block[conf_.block_num()];
   if (blocks_ == nullptr) {
@@ -103,6 +107,7 @@ bool XsiSegment::OpenOrCreate() {
   // create block buf
   uint32_t i = 0;
   for (; i < conf_.block_num(); ++i) {
+    // 第i个block的实际buf地址为：起始地址+State大小+block数组大小+i*block_buf_size
     uint8_t* addr =
         new (static_cast<char*>(managed_shm_) + sizeof(State) +
              conf_.block_num() * sizeof(Block) + i * conf_.block_buf_size())
