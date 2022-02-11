@@ -18,8 +18,31 @@
 
 #include "cyber/cyber.h"
 
+bool s_rdy = false;
+std::future<int> s_f;
+int async_func(int& val) {
+  std::future_status status = s_f.wait_for(std::chrono::milliseconds(1));
+  if (status != std::future_status::ready) return -1;
+  else  {
+    val = s_f.get();
+    return 0;
+  }
+}
+
 void MessageCallback(
-    const std::shared_ptr<apollo::cyber::examples::proto::Chatter>& msg) {
+  const std::shared_ptr<apollo::cyber::examples::proto::Chatter>& msg) {
+
+  if (!s_rdy) {
+    int value = 0;
+    if (async_func(value) == 0) {
+      s_rdy = true;
+      AINFO << "calc done: " << value;
+    } else {
+      AINFO << "calc not done";
+      apollo::cyber::USleep(5000 * 1000);   // 主动yield
+    }
+  }
+
   AINFO << "Received message seq-> " << msg->seq();
   AINFO << "msgcontent->" << msg->content();
 }
@@ -33,6 +56,12 @@ int main(int argc, char* argv[]) {
   auto listener =
       listener_node->CreateReader<apollo::cyber::examples::proto::Chatter>(
           "channel/chatter", MessageCallback);
+
+  s_f = std::async(std::launch::async, []() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    return 8;
+    });
+
   apollo::cyber::WaitForShutdown();
   return 0;
 }
