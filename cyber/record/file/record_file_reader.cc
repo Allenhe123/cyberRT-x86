@@ -63,20 +63,17 @@ bool RecordFileReader::ReadHeader() {
               "file.";
     return false;
   }
-  // record文件的第一个section必须是HEADER
   if (section.type != SectionType::SECTION_HEADER) {
     AERROR << "Check section type failed"
            << ", expect: " << SectionType::SECTION_HEADER
            << ", actual: " << section.type;
     return false;
   }
-  // 读取header数据
   if (!ReadSection<proto::Header>(section.size, &header_)) {
     AERROR << "Read header section fail, file is broken or it is not a record "
               "file.";
     return false;
   }
-  // 移动文件指针
   if (!SetPosition(sizeof(struct Section) + HEADER_LENGTH)) {
     AERROR << "Skip bytes for reaching the nex section failed.";
     return false;

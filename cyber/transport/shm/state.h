@@ -37,8 +37,6 @@ class State {
       if (current_reference_count == 0) {
         return;
       }
-      // 原子的比较 *this和expect的值，若它们逐位相等，则以desired 替换前者（进行读修改写操作）。
-      // 否则，将*this中的实际值加载进expected（进行加载操作）。
     } while (!reference_count_.compare_exchange_strong(
         current_reference_count, current_reference_count - 1));
   }

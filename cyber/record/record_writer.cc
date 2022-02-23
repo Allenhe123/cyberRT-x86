@@ -16,11 +16,8 @@
 
 #include "cyber/record/record_writer.h"
 
-#include <chrono>
-#include <future>
 #include <iomanip>
 #include <iostream>
-#include <utility>
 
 #include "cyber/common/log.h"
 
@@ -43,7 +40,6 @@ bool RecordWriter::Open(const std::string& file) {
   sstream_.str(std::string());
   sstream_.clear();
   sstream_ << "." << std::setw(5) << std::setfill('0') << file_index_++;
-  // segmented every n second(s);segmented every n megabyte(s)
   if (header_.segment_interval() > 0 || header_.segment_raw_size() > 0) {
     path_ = file_ + sstream_.str();
   } else {
@@ -87,12 +83,10 @@ bool RecordWriter::SplitOutfile() {
     AERROR << "Failed to open record file: " << path_;
     return false;
   }
-  // 新的record文件中写入header
   if (!file_writer_->WriteHeader(header_)) {
     AERROR << "Failed to write header for record file: " << path_;
     return false;
   }
-  // 新的record文件中写入每个channel的信息
   for (const auto& i : channel_message_number_map_) {
     Channel channel;
     channel.set_name(i.first);
@@ -143,16 +137,12 @@ bool RecordWriter::WriteMessage(const SingleMessage& message) {
     segment_begin_time_ = message.time();
   }
 
-  // 是否需要切割文件
   if ((header_.segment_interval() > 0 &&
        message.time() - segment_begin_time_ > header_.segment_interval()) ||
       (header_.segment_raw_size() > 0 &&
        segment_raw_size_ > header_.segment_raw_size())) {
-    ACHECK(old_file_writer_closer_.wait_for(std::chrono::milliseconds(0)) ==
-           std::future_status::ready);
-    // Close the file via the destructor asynchronously
-    old_file_writer_closer_ = std::async(
-        std::launch::async, [](FileWriterPtr p) {}, std::move(file_writer_));
+    file_writer_backup_.swap(file_writer_);
+    file_writer_backup_->Close();
     if (!SplitOutfile()) {
       AERROR << "Split out file is failed.";
       return false;
@@ -183,8 +173,6 @@ bool RecordWriter::IsNewChannel(const std::string& channel_name) const {
   return channel_message_number_map_.find(channel_name) ==
          channel_message_number_map_.end();
 }
-
-void RecordWriter::WaitForWrite() { file_writer_->WaitForWrite(); }
 
 void RecordWriter::OnNewChannel(const std::string& channel_name,
                                 const std::string& message_type,

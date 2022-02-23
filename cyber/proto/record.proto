@@ -3,7 +3,7 @@ syntax = "proto2";
 package apollo.cyber.proto;
 
 enum SectionType {
-  SECTION_HEADER = 0;       // message Header
+  SECTION_HEADER = 0;
   SECTION_CHUNK_HEADER = 1;
   SECTION_CHUNK_BODY = 2;
   SECTION_INDEX = 3;

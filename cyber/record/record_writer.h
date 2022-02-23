@@ -18,7 +18,6 @@
 #define CYBER_RECORD_RECORD_WRITER_H_
 
 #include <cstdint>
-#include <future>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -170,11 +169,6 @@ class RecordWriter : public RecordBase {
    */
   bool IsNewChannel(const std::string& channel_name) const;
 
-  /**
-   * @brief Meant for testing
-   */
-  void WaitForWrite();
-
  private:
   bool WriteMessage(const proto::SingleMessage& single_msg);
   bool SplitOutfile();
@@ -191,9 +185,7 @@ class RecordWriter : public RecordBase {
   MessageTypeMap channel_message_type_map_;
   MessageProtoDescMap channel_proto_desc_map_;
   FileWriterPtr file_writer_ = nullptr;
-  // Initialize with a dummy value to simplify checking later
-  std::future<void> old_file_writer_closer_ =
-      std::async(std::launch::async, []() {});
+  FileWriterPtr file_writer_backup_ = nullptr;
   std::mutex mutex_;
   std::stringstream sstream_;
 };
@@ -229,7 +221,6 @@ bool RecordWriter::WriteMessage(const std::string& channel_name,
                                 const std::string& proto_desc) {
   const std::string& message_type = GetMessageType(channel_name);
   if (message_type.empty()) {
-    // 如果查寻不到channel的信息则先写channel信息
     if (!WriteChannel(channel_name, message::GetMessageName<MessageT>(),
                       proto_desc)) {
       AERROR << "Failed to write meta data to channel [" << channel_name
@@ -248,7 +239,6 @@ bool RecordWriter::WriteMessage(const std::string& channel_name,
     AERROR << "Failed to serialize message, channel: " << channel_name;
     return false;
   }
-  // 然后调用特化版本写message
   return WriteMessage(channel_name, content, time_nanosec);
 }
 

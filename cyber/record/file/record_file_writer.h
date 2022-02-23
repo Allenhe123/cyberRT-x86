@@ -19,9 +19,9 @@
 
 #include <condition_variable>
 #include <fstream>
-#include <future>
 #include <memory>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -74,13 +74,10 @@ struct Chunk {
   std::unique_ptr<proto::ChunkBody> body_ = nullptr;
 };
 
-/**
-Writes cyber record files on an asynchronous task
-*/
 class RecordFileWriter : public RecordFileBase {
  public:
-  RecordFileWriter() = default;
-  ~RecordFileWriter();
+  RecordFileWriter();
+  virtual ~RecordFileWriter();
   bool Open(const std::string& path) override;
   void Close() override;
   bool WriteHeader(const proto::Header& header);
@@ -88,29 +85,25 @@ class RecordFileWriter : public RecordFileBase {
   bool WriteMessage(const proto::SingleMessage& message);
   uint64_t GetMessageNumber(const std::string& channel_name) const;
 
-  // For testing
-  void WaitForWrite();
-
  private:
   bool WriteChunk(const proto::ChunkHeader& chunk_header,
                   const proto::ChunkBody& chunk_body);
   template <typename T>
   bool WriteSection(const T& message);
   bool WriteIndex();
-  void Flush(const Chunk& chunk);
-  bool IsChunkFlushEmpty();
-  void BlockUntilSpaceAvailable();
-  // make moveable
-  std::unique_ptr<Chunk> chunk_active_;
-  // Initialize with a dummy value to simplify checking later
-  std::future<void> flush_task_ = std::async(std::launch::async, []() {});
+  void Flush();
+  std::atomic_bool is_writing_;
+  std::unique_ptr<Chunk> chunk_active_ = nullptr;
+  std::unique_ptr<Chunk> chunk_flush_ = nullptr;
+  std::shared_ptr<std::thread> flush_thread_ = nullptr;
+  std::mutex flush_mutex_;
+  std::condition_variable flush_cv_;
   std::unordered_map<std::string, uint64_t> channel_message_number_map_;
 };
 
 template <typename T>
 bool RecordFileWriter::WriteSection(const T& message) {
   proto::SectionType type;
-  // is_same<X,Y>::value用于判断X和Y是否是同一类型
   if (std::is_same<T, proto::ChunkHeader>::value) {
     type = proto::SectionType::SECTION_CHUNK_HEADER;
   } else if (std::is_same<T, proto::ChunkBody>::value) {
@@ -119,7 +112,6 @@ bool RecordFileWriter::WriteSection(const T& message) {
     type = proto::SectionType::SECTION_CHANNEL;
   } else if (std::is_same<T, proto::Header>::value) {
     type = proto::SectionType::SECTION_HEADER;
-    // Header要写2次，第1次不全，所有数据写完后更新header，再写1次
     if (!SetPosition(0)) {
       AERROR << "Jump to position #0 failed";
       return false;
@@ -133,9 +125,7 @@ bool RecordFileWriter::WriteSection(const T& message) {
   Section section;
   /// zero out whole struct even if padded
   memset(&section, 0, sizeof(section));
-  section.type = type;
-  section.size = static_cast<int64_t>(message.ByteSizeLong());
-  // 先写Section的类型和大小
+  section = {type, static_cast<int64_t>(message.ByteSizeLong())};
   ssize_t count = write(fd_, &section, sizeof(section));
   if (count < 0) {
     AERROR << "Write fd failed, fd: " << fd_ << ", errno: " << errno;
@@ -148,12 +138,10 @@ bool RecordFileWriter::WriteSection(const T& message) {
     return false;
   }
   {
-    //写Secton的内容--zero copy方式
     google::protobuf::io::FileOutputStream raw_output(fd_);
     message.SerializeToZeroCopyStream(&raw_output);
   }
   if (type == proto::SectionType::SECTION_HEADER) {
-    // 若是section header则补齐到2048bytes
     static char blank[HEADER_LENGTH] = {'0'};
     count = write(fd_, &blank, HEADER_LENGTH - message.ByteSizeLong());
     if (count < 0) {

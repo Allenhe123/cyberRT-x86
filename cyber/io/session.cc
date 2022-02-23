@@ -35,7 +35,6 @@ int Session::Socket(int domain, int type, int protocol) {
   }
   int sock_fd = socket(domain, type | SOCK_NONBLOCK, protocol);
   if (sock_fd != -1) {
-    // 设置fd_ = socket_fd
     set_fd(sock_fd);
   }
   return sock_fd;
@@ -52,15 +51,12 @@ int Session::Bind(const struct sockaddr *addr, socklen_t addrlen) {
   return bind(fd_, addr, addrlen);
 }
 
- // Accept函数在协程的入口函数中调用，不可阻塞，设置成NOBLOCK
 auto Session::Accept(struct sockaddr *addr, socklen_t *addrlen) -> SessionPtr {
   ACHECK(fd_ != -1);
-  
+
   int sock_fd = accept4(fd_, addr, addrlen, SOCK_NONBLOCK);
   while (sock_fd == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-    // Block()函数内部协程会YIELD
     poll_handler_->Block(-1, true);
-    // 协程返回继续执行accept4应该会调用成功
     sock_fd = accept4(fd_, addr, addrlen, SOCK_NONBLOCK);
   }
 

@@ -28,7 +28,6 @@ namespace apollo {
 namespace cyber {
 namespace message {
 
-// 就是字节流
 struct RawMessage {
   RawMessage() : message(""), timestamp(0) {}
 

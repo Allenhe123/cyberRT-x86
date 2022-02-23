@@ -20,18 +20,19 @@ message ChatterBenchmark {
   optional string content = 3;
 }
 
-message Needata {
-    optional uint64 timestamp = 1;
-    optional uint32 seq = 2;
-    optional uint32 id = 3;
-    optional bytes content = 4;
-    optional bytes data1 = 5;
-    optional bytes data2 = 6;
-    optional bytes data3 = 7;
-    optional bytes data4 = 8;
-    optional bytes data5 = 9;
-    optional bytes data6 = 10;
-    optional bytes data7 = 11;
-    optional bytes data8 = 12;
-    optional bytes data9 = 13;
-};
+message Needata { 
+  optional uint64 timestamp = 1; 
+  optional uint32 seq = 2; 
+  optional uint32 id = 3; 
+  optional bytes content = 4; 
+  optional bytes data1 = 5; 
+  optional bytes data2 = 6; 
+  optional bytes data3 = 7; 
+  optional bytes data4 = 8; 
+  optional bytes data5 = 9; 
+  optional bytes data6 = 10; 
+  optional bytes data7 = 11; 
+  optional bytes data8 = 12; 
+  optional bytes data9 = 13; 
+  };
+

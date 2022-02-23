@@ -137,7 +137,6 @@ void Manager::RemoveChangeListener(const ChangeConnection& conn) {
   local_conn.Disconnect();
 }
 
-// 创建fastrtps的publisher用于发布服务发现信息
 bool Manager::CreatePublisher(RtpsParticipant* participant) {
   RtpsPublisherAttr pub_attr;
   RETURN_VAL_IF(
@@ -148,7 +147,7 @@ bool Manager::CreatePublisher(RtpsParticipant* participant) {
       eprosima::fastrtps::Domain::createPublisher(participant, pub_attr);
   return publisher_ != nullptr;
 }
-// 创建fastrtps的subscriber用于订阅服务发现信息
+
 bool Manager::CreateSubscriber(RtpsParticipant* participant) {
   RtpsSubscriberAttr sub_attr;
   RETURN_VAL_IF(
@@ -183,7 +182,7 @@ void Manager::Convert(const RoleAttributes& attr, RoleType role,
     role_attr->set_process_id(process_id_);
   }
 }
-// Notify的时候调用信号对应的槽函数
+
 void Manager::Notify(const ChangeMsg& msg) { signal_(msg); }
 
 void Manager::OnRemoteChange(const std::string& msg_str) {

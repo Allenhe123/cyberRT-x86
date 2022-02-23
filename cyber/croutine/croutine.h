@@ -107,7 +107,6 @@ class CRoutine {
 
   std::shared_ptr<RoutineContext> context_;
 
-// atomic_flag原子布尔类型是免锁的
   std::atomic_flag lock_ = ATOMIC_FLAG_INIT;
   std::atomic_flag updated_ = ATOMIC_FLAG_INIT;
 
@@ -119,7 +118,6 @@ class CRoutine {
 
   std::string group_name_;
 
-// thread_local变量每个线程保留一份副本
   static thread_local CRoutine *current_routine_;
   static thread_local char *main_stack_;
 };
@@ -175,7 +173,6 @@ inline void CRoutine::set_processor_id(int processor_id) {
   processor_id_ = processor_id;
 }
 
-// 此处修改协程的状态，在ClassicContext::NextRoutine()中被调用
 inline RoutineState CRoutine::UpdateState() {
   // Synchronous Event Mechanism
   if (state_ == RoutineState::SLEEP &&
@@ -185,7 +182,6 @@ inline RoutineState CRoutine::UpdateState() {
   }
 
   // Asynchronous Event Mechanism
-  // 原子地设置标志为true并获得其先前值
   if (!updated_.test_and_set(std::memory_order_release)) {
     if (state_ == RoutineState::DATA_WAIT || state_ == RoutineState::IO_WAIT) {
       state_ = RoutineState::READY;
@@ -198,19 +194,15 @@ inline uint32_t CRoutine::priority() const { return priority_; }
 
 inline void CRoutine::set_priority(uint32_t priority) { priority_ = priority; }
 
-// 原子地设置标志为true并返回原来的值
 inline bool CRoutine::Acquire() {
   return !lock_.test_and_set(std::memory_order_acquire);
 }
- // 原子地设置标志为false
+
 inline void CRoutine::Release() {
   return lock_.clear(std::memory_order_release);
 }
 
-// SchedulerXXX::NotifyProcessor中调用该函数将updated_设置为false
-// 也就是说此协程IO结束可以被调度运行了
 inline void CRoutine::SetUpdateFlag() {
-  // 原子地设置标志为false
   updated_.clear(std::memory_order_release);
 }
 

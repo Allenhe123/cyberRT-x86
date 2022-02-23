@@ -39,7 +39,6 @@ bool Scheduler::CreateTask(const RoutineFactory& factory,
   return CreateTask(factory.create_routine(), name, factory.GetDataVisitor());
 }
 
-// 创建协程！
 bool Scheduler::CreateTask(std::function<void()>&& func,
                            const std::string& name,
                            std::shared_ptr<DataVisitorBase> visitor) {
@@ -60,20 +59,16 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
   }
 
   if (visitor != nullptr) {
-    // visitor在此处注册的callback函数在datavisitor的成员变量data_notifier的函数Notify()中调用
     visitor->RegisterNotifyCallback([this, task_id]() {
       if (cyber_unlikely(stop_.load())) {
         return;
       }
-      // 实际cyber通信调用的接口进行通知数据到来
       this->NotifyProcessor(task_id);
     });
   }
   return true;
 }
 
-// IO有数据可读后调用NotifyTask(crid)
-// 实际cyber通信不会调用这个接口来通知数据到来，poll_handler.cc中用到，用来协助编写网络程序
 bool Scheduler::NotifyTask(uint64_t crid) {
   if (cyber_unlikely(stop_.load())) {
     return true;

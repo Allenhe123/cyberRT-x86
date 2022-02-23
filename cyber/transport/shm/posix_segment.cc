@@ -41,7 +41,7 @@ bool PosixSegment::OpenOrCreate() {
     return true;
   }
 
-  // create managed_shm_  创建或者打开共享内存文件
+  // create managed_shm_
   int fd = shm_open(shm_name_.c_str(), O_RDWR | O_CREAT | O_EXCL, 0644);
   if (fd < 0) {
     if (EEXIST == errno) {
@@ -53,20 +53,18 @@ bool PosixSegment::OpenOrCreate() {
     }
   }
 
- // 重置文件大小
   if (ftruncate(fd, conf_.managed_shm_size()) < 0) {
     AERROR << "ftruncate failed: " << strerror(errno);
     close(fd);
     return false;
   }
 
-  // attach managed_shm_  将打开的文件映射到内存
+  // attach managed_shm_
   managed_shm_ = mmap(nullptr, conf_.managed_shm_size(), PROT_READ | PROT_WRITE,
                       MAP_SHARED, fd, 0);
   if (managed_shm_ == MAP_FAILED) {
     AERROR << "attach shm failed:" << strerror(errno);
     close(fd);
-    // 删除/dev/shm目录的文件,shm_unlink 删除的文件是由shm_open函数创建于/dev/shm目录的
     shm_unlink(shm_name_.c_str());
     return false;
   }
@@ -77,7 +75,6 @@ bool PosixSegment::OpenOrCreate() {
   state_ = new (managed_shm_) State(conf_.ceiling_msg_size());
   if (state_ == nullptr) {
     AERROR << "create state failed.";
-    //只是将映射的内存从进程的地址空间撤销，如果不调用这个函数，则在进程终止前，该片区域将得不到释放
     munmap(managed_shm_, conf_.managed_shm_size());
     managed_shm_ = nullptr;
     shm_unlink(shm_name_.c_str());

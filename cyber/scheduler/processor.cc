@@ -48,9 +48,7 @@ void Processor::Run() {
       if (croutine) {
         snap_shot_->execute_start_time.store(cyber::Time::Now().ToNanosecond());
         snap_shot_->routine_name = croutine->name();
-        // 将thread_local类型的变量current_coutine_设置为当前协程然后执行它的入口函数
         croutine->Resume();
-        // 反Acquire()操作
         croutine->Release();
       } else {
         snap_shot_->execute_start_time.store(0);

@@ -25,7 +25,6 @@ namespace apollo {
 namespace cyber {
 namespace transport {
 
-// posix的共享内存实现
 class PosixSegment : public Segment {
  public:
   explicit PosixSegment(uint64_t channel_id);

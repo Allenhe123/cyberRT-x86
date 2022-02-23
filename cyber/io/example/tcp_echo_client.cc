@@ -83,7 +83,6 @@ int main(int argc, char* argv[]) {
               std::cout << *itr;
             }
             count += (uint32_t)nbytes;
-            // recv length is sent msg's length 
             if (count >= user_input.length()) {
               break;
             }

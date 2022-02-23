@@ -77,7 +77,7 @@ void ChannelManager::GetMsgType(const std::string& channel_name,
   uint64_t key = common::GlobalData::RegisterChannel(channel_name);
   RolePtr writer = nullptr;
   if (!channel_writers_.Search(key, &writer)) {
-    AERROR << "cannot serarch writer of channel: " << channel_name
+    AERROR << "cannot find writer of channel: " << channel_name
            << " key: " << key;
     return;
   }
@@ -238,7 +238,6 @@ void ChannelManager::Dispose(const ChangeMsg& msg) {
   Notify(msg);
 }
 
-// 在TopologyManager::OnParticipantChange()中被调用
 void ChannelManager::OnTopoModuleLeave(const std::string& host_name,
                                        int process_id) {
   RETURN_IF(!is_discovery_started_.load());

@@ -34,7 +34,6 @@ namespace data {
 using apollo::cyber::Time;
 using apollo::cyber::base::AtomicHashMap;
 
-// 单例，进程唯一
 template <typename T>
 class DataDispatcher {
  public:
@@ -70,11 +69,6 @@ void DataDispatcher<T>::AddBuffer(const ChannelBuffer<T>& channel_buffer) {
   }
 }
 
-// 将数据放入data_visitor的buffer中，并调用notifier_->Notify(cid)
-// Dispatch()函数在哪里被调用呢？
-// 在ReceiverManager::GetReceiver()函数中注册的该函数，
-// 一个Receiver对应一个channel，将Dispatch()函数注册给对应的Receiver的msg_listener，
-// 当收到消息就调用Dispatch()函数
 template <typename T>
 bool DataDispatcher<T>::Dispatch(const uint64_t channel_id,
                                  const std::shared_ptr<T>& msg) {

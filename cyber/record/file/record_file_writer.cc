@@ -35,6 +35,8 @@ using apollo::cyber::proto::Header;
 using apollo::cyber::proto::SectionType;
 using apollo::cyber::proto::SingleIndex;
 
+RecordFileWriter::RecordFileWriter() : is_writing_(false) {}
+
 RecordFileWriter::~RecordFileWriter() { Close(); }
 
 bool RecordFileWriter::Open(const std::string& path) {
@@ -50,40 +52,69 @@ bool RecordFileWriter::Open(const std::string& path) {
            << ", errno: " << errno;
     return false;
   }
-  // 创建chunk
-  chunk_active_ = std::make_unique<Chunk>();
+  chunk_active_.reset(new Chunk());
+  chunk_flush_.reset(new Chunk());
+  is_writing_ = true;
+  flush_thread_ = std::make_shared<std::thread>([this]() { this->Flush(); });
+  if (flush_thread_ == nullptr) {
+    AERROR << "Init flush thread error.";
+    return false;
+  }
   return true;
 }
 
-// 析构函数中会调用Close()，所以切割文件时会调到这里
 void RecordFileWriter::Close() {
-  if (fd_ < 0) {
-    return;
-  }
-  // 等待flush_task异步任务完成
-  flush_task_.wait();
-  Flush(*chunk_active_);
+  if (is_writing_) {
+    // wait for the flush operation that may exist now
+    while (1) {
+      {
+        std::unique_lock<std::mutex> flush_lock(flush_mutex_);
+        if (chunk_flush_->empty()) {
+          break;
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 
-  // 写index，index中包含了各个部分的type，pos，cache信息(
-  // channel_cache: channel的msg数量，name，msg_type,proto_desc
-  // chunk_header_cache: msg number, begin_time, end_time, raw_size
-  // chunk_body_cache:msg number
-  // )
-  if (!WriteIndex()) {
-    AERROR << "Write index section failed, file: " << path_;
-  }
+    // last swap
+    {
+      std::unique_lock<std::mutex> flush_lock(flush_mutex_);
+      chunk_flush_.swap(chunk_active_);
+      flush_cv_.notify_one();
+    }
 
-  // 写更新后的header信息: 里面有index_position，可以先读出index数据再根据position读取其余各个部分
-  header_.set_is_complete(true);
-  if (!WriteHeader(header_)) {
-    AERROR << "Overwrite header section failed, file: " << path_;
-  }
+    // wait for the last flush operation
+    while (1) {
+      {
+        std::unique_lock<std::mutex> flush_lock(flush_mutex_);
+        if (chunk_flush_->empty()) {
+          break;
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 
-  if (close(fd_) < 0) {
-    AERROR << "Close file failed, file: " << path_ << ", fd: " << fd_
-           << ", errno: " << errno;
+    is_writing_ = false;
+    flush_cv_.notify_all();
+    if (flush_thread_ && flush_thread_->joinable()) {
+      flush_thread_->join();
+      flush_thread_ = nullptr;
+    }
+
+    if (!WriteIndex()) {
+      AERROR << "Write index section failed, file: " << path_;
+    }
+
+    header_.set_is_complete(true);
+    if (!WriteHeader(header_)) {
+      AERROR << "Overwrite header section failed, file: " << path_;
+    }
+
+    if (close(fd_) < 0) {
+      AERROR << "Close file failed, file: " << path_ << ", fd: " << fd_
+             << ", errno: " << errno;
+    }
   }
-  fd_ = -1;
 }
 
 bool RecordFileWriter::WriteHeader(const Header& header) {
@@ -176,9 +207,7 @@ bool RecordFileWriter::WriteChunk(const ChunkHeader& chunk_header,
   return true;
 }
 
-// WriteMessage只是将message放入chunk中，真正落盘是在split文件或者close文件的时候
 bool RecordFileWriter::WriteMessage(const proto::SingleMessage& message) {
-  CHECK_GE(fd_, 0) << "First, call Open";
   chunk_active_->add(message);
   auto it = channel_message_number_map_.find(message.channel_name());
   if (it != channel_message_number_map_.end()) {
@@ -187,7 +216,6 @@ bool RecordFileWriter::WriteMessage(const proto::SingleMessage& message) {
     channel_message_number_map_.insert(
         std::make_pair(message.channel_name(), 1));
   }
-  // 是否需要切割文件
   bool need_flush = false;
   if (header_.chunk_interval() > 0 &&
       message.time() - chunk_active_->header_.begin_time() >
@@ -201,28 +229,31 @@ bool RecordFileWriter::WriteMessage(const proto::SingleMessage& message) {
   if (!need_flush) {
     return true;
   }
-  // 判断上一个flush异步任务是否结束
-  ACHECK(flush_task_.wait_for(std::chrono::milliseconds(0)) ==
-         std::future_status::ready)
-      << "Flushing didn't finish. Either the hardware cannot keep up or the "
-         "flush rate is too fast.";
-
-  flush_task_ = std::async(
-      std::launch::async,
-      [this, chunk = std::move(chunk_active_)]() { this->Flush(*chunk); });
-  // 重新创建一个chunk    
-  chunk_active_ = std::make_unique<Chunk>();
-
+  {
+    std::unique_lock<std::mutex> flush_lock(flush_mutex_);
+    chunk_flush_.swap(chunk_active_);
+    flush_cv_.notify_one();
+  }
   return true;
 }
 
-void RecordFileWriter::Flush(const Chunk& chunk) {
-  if (!WriteChunk(chunk.header_, *(chunk.body_.get()))) {
-    AERROR << "Write chunk fail.";
+void RecordFileWriter::Flush() {
+  while (is_writing_) {
+    std::unique_lock<std::mutex> flush_lock(flush_mutex_);
+    flush_cv_.wait(flush_lock,
+                   [this] { return !chunk_flush_->empty() || !is_writing_; });
+    if (!is_writing_) {
+      break;
+    }
+    if (chunk_flush_->empty()) {
+      continue;
+    }
+    if (!WriteChunk(chunk_flush_->header_, *(chunk_flush_->body_.get()))) {
+      AERROR << "Write chunk fail.";
+    }
+    chunk_flush_->clear();
   }
 }
-
-void RecordFileWriter::WaitForWrite() { flush_task_.wait(); }
 
 uint64_t RecordFileWriter::GetMessageNumber(
     const std::string& channel_name) const {

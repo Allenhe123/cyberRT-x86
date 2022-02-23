@@ -160,7 +160,6 @@ bool SchedulerClassic::DispatchTask(const std::shared_ptr<CRoutine>& cr) {
   return true;
 }
 
-// NotifyTask(crid)中调用NotifyProcessor(crid)
 bool SchedulerClassic::NotifyProcessor(uint64_t crid) {
   if (cyber_unlikely(stop_)) {
     return true;
@@ -170,12 +169,11 @@ bool SchedulerClassic::NotifyProcessor(uint64_t crid) {
     ReadLockGuard<AtomicRWLock> lk(id_cr_lock_);
     if (id_cr_.find(crid) != id_cr_.end()) {
       auto cr = id_cr_[crid];
-      // 如果之前是WAIT状态，则updated标记为false
       if (cr->state() == RoutineState::DATA_WAIT ||
           cr->state() == RoutineState::IO_WAIT) {
         cr->SetUpdateFlag();
       }
-      // 然后通知group
+
       ClassicContext::Notify(cr->group_name());
       return true;
     }

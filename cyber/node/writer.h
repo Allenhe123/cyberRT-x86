@@ -127,18 +127,17 @@ bool Writer<MessageT>::Init() {
     if (init_) {
       return true;
     }
-    // writer的init比较简单，创建transmitter
-    transmitter_ = transport::Transport::Instance()->CreateTransmitter<MessageT>(role_attr_);
+    transmitter_ =
+        transport::Transport::Instance()->CreateTransmitter<MessageT>(
+            role_attr_);
     if (transmitter_ == nullptr) {
       return false;
     }
     init_ = true;
   }
   this->role_attr_.set_id(transmitter_->id().HashValue());
-  // 单例对象！ 第一次时初始化NodeManager，ChannelManager，ServiceManager
-  // 并开启它们的服务发现功能
-  channel_manager_ = service_discovery::TopologyManager::Instance()->channel_manager();
-  // 加入拓扑：
+  channel_manager_ =
+      service_discovery::TopologyManager::Instance()->channel_manager();
   JoinTheTopology();
   return true;
 }
@@ -172,8 +171,7 @@ bool Writer<MessageT>::Write(const std::shared_ptr<MessageT>& msg_ptr) {
 
 template <typename MessageT>
 void Writer<MessageT>::JoinTheTopology() {
-  // add listener  处理与该writer同channel的reader的加入和离开
-  // 信号的槽函数在channel_manager_的Notify()中被调用
+  // add listener
   change_conn_ = channel_manager_->AddChangeListener(std::bind(
       &Writer<MessageT>::OnChannelChange, this, std::placeholders::_1));
 
@@ -194,7 +192,7 @@ void Writer<MessageT>::LeaveTheTopology() {
   channel_manager_->RemoveChangeListener(change_conn_);
   channel_manager_->Leave(this->role_attr_, proto::RoleType::ROLE_WRITER);
 }
-// Writer这一层的channel变化处理：transmitter与reader间的关联
+
 template <typename MessageT>
 void Writer<MessageT>::OnChannelChange(const proto::ChangeMsg& change_msg) {
   if (change_msg.role_type() != proto::RoleType::ROLE_READER) {

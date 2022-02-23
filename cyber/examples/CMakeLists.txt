@@ -17,6 +17,9 @@ add_executable(pubsub_talker pubsub_talker.cc ${PROTO_SRCS})
 add_executable(pubsub_listener pubsub_listener.cc ${PROTO_SRCS})
 add_executable(channel_test_writer common_component_example/channel_test_writer.cc ${PROTO_SRCS})
 
+#add_executable(cyber_bridge cyber_bridge.cc ${PROTO_SRCS})
+#add_executable(talker_cyber_bridge talker_cyber_bridge.cc ${PROTO_SRCS})
+
 target_link_libraries(talker cyber gflags glog)
 target_link_libraries(listener cyber gflags glog)
 target_link_libraries(paramserver cyber gflags glog)
@@ -34,6 +37,9 @@ add_library(timer_component_example SHARED timer_component_example/timer_compone
 target_link_libraries(common_component_example cyber)
 target_link_libraries(component_demo cyber)
 target_link_libraries(timer_component_example cyber)
+
+#target_link_libraries(cyber_bridge cyber gflags glog) 
+#target_link_libraries(talker_cyber_bridge cyber gflags glog)
 
 file(GLOB EXAMPLE_FILES "*/*.dag" "*/*.launch")
 install(TARGETS common_component_example timer_component_example talker listener paramserver service record

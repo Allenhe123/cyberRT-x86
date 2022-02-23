@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 201 The Apollo Authors. All Rights Reserved.
+ * Copyright 2020 The Apollo Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *****************************************************************************/
+#include "cyber/class_loader/shared_library/sample.h"
 
-#ifndef CYBER_CLASS_LOADER_TEST_BASE_H_
-#define CYBER_CLASS_LOADER_TEST_BASE_H_
+#include <cmath>
 
-class Base {
- public:
-  virtual void DoSomething() = 0;
-  virtual ~Base() {}
-};
+int sample_add(int x, int y) { return x + y; }
 
-#endif  // CYBER_CLASS_LOADER_TEST_BASE_H_
+double sample_sin(double x) { return std::sin(x); }

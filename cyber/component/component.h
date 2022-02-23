@@ -169,7 +169,6 @@ bool Component<M0, NullType, NullType, NullType>::Initialize(
     return false;
   }
 
-// 调用实际派生类的Init函数
   if (!Init()) {
     AERROR << "Component Init() failed.";
     return false;
@@ -187,7 +186,6 @@ bool Component<M0, NullType, NullType, NullType>::Initialize(
   auto func = [self](const std::shared_ptr<M0>& msg) {
     auto ptr = self.lock();
     if (ptr) {
-      // 调用Process函数，Process函数中调用派生类的Proc函数
       ptr->Process(msg);
     } else {
       AERROR << "Component object has been destroyed.";
@@ -218,8 +216,6 @@ bool Component<M0, NullType, NullType, NullType>::Initialize(
   croutine::RoutineFactory factory =
       croutine::CreateRoutineFactory<M0>(func, dv);
   auto sched = scheduler::Instance();
-  // 创建名为nodename的task,接收通道为readers_[0]->ChannelId()
-  // component方式用这个task通信! 回调函数里面调用Proc函数!
   return sched->CreateTask(factory, node_->Name());
 }
 
